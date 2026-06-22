@@ -8,11 +8,12 @@ from accounts.models import User
 from accounts.serializers import LoginSerializer, PasswordResetSerializer, UserSerializer
 
 
-class LoginView(APIView):
+class LoginView(generics.GenericAPIView):
     permission_classes = [AllowAny]
+    serializer_class = LoginSerializer
 
     def post(self, request):
-        serializer = LoginSerializer(data=request.data, context={'request': request})
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response(serializer.validated_data)
 
@@ -39,12 +40,13 @@ class PasswordResetView(APIView):
 
 
 class UserListCreateView(generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     serializer_class = UserSerializer
     queryset = User.objects.all()
 
     def get_queryset(self):
         qs = User.objects.all()
+        print(qs)
         role = self.request.query_params.get('role')
         if role:
             qs = qs.filter(role=role)
