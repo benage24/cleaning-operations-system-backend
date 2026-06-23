@@ -1,7 +1,6 @@
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from accounts.models import User
@@ -30,8 +29,9 @@ class MeView(generics.RetrieveAPIView):
         return self.request.user
 
 
-class PasswordResetView(APIView):
+class PasswordResetView(generics.GenericAPIView):
     permission_classes = [AllowAny]
+    serializer_class = PasswordResetSerializer
 
     def post(self, request):
         serializer = PasswordResetSerializer(data=request.data)

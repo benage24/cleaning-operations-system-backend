@@ -201,3 +201,18 @@ class PerformanceReportSerializer(serializers.Serializer):
     averageTimeMinutes = serializers.FloatField()
     attendanceRate = serializers.FloatField()
     performanceScore = serializers.IntegerField()
+
+
+class WeeklyCompletionItemSerializer(serializers.Serializer):
+    day = serializers.CharField()
+    completed = serializers.IntegerField()
+    assigned = serializers.IntegerField()
+
+
+class ExportReportRequestSerializer(serializers.Serializer):
+    type = serializers.CharField(required=False, default='pdf')
+    reportName = serializers.CharField(required=False, default='report')
+
+
+class ExportReportResponseSerializer(serializers.Serializer):
+    url = serializers.CharField()
