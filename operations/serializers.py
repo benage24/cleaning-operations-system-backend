@@ -25,8 +25,11 @@ class LocationSerializer(serializers.ModelSerializer):
 
 
 class RoomSerializer(serializers.ModelSerializer):
-    qrCode = serializers.CharField(source='qr_code')
-    locationId = serializers.PrimaryKeyRelatedField(source='location', queryset=Location.objects.all())
+    qr_code = serializers.CharField()
+    location_id = serializers.PrimaryKeyRelatedField(
+        source='location',
+        queryset=Location.objects.all(),
+    )
 
     class Meta:
         model = Room
@@ -38,8 +41,8 @@ class RoomSerializer(serializers.ModelSerializer):
             'floor',
             'department',
             'status',
-            'qrCode',
-            'locationId',
+            'qr_code',
+            'location_id',
             'deadline',
         ]
 

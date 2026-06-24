@@ -40,13 +40,12 @@ class PasswordResetView(generics.GenericAPIView):
 
 
 class UserListCreateView(generics.ListCreateAPIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     serializer_class = UserSerializer
     queryset = User.objects.all()
 
     def get_queryset(self):
         qs = User.objects.all()
-        print(qs)
         role = self.request.query_params.get('role')
         if role:
             qs = qs.filter(role=role)
