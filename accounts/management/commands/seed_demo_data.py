@@ -22,7 +22,18 @@ from operations.models import (
 class Command(BaseCommand):
     help = 'Seed demo data matching the Angular frontend mock data'
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--if-empty',
+            action='store_true',
+            help='Skip seeding when non-superuser accounts already exist',
+        )
+
     def handle(self, *args, **options):
+        if options['if_empty'] and User.objects.filter(is_superuser=False).exists():
+            self.stdout.write('Users already exist — skipping demo seed.')
+            return
+
         self.stdout.write('Clearing existing data...')
         Notification.objects.all().delete()
         AttendanceRecord.objects.all().delete()
