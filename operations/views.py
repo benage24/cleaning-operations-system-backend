@@ -103,8 +103,8 @@ class AssignmentViewSet(viewsets.ReadOnlyModelViewSet):
     def bulk_assign(self, request):
         serializer = BulkAssignSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        room_ids = serializer.validated_data['roomIds']
-        cleaner_id = serializer.validated_data['cleanerId']
+        room_ids = serializer.validated_data['room_ids']
+        cleaner_id = serializer.validated_data['cleaner_id']
 
         try:
             cleaner = User.objects.get(pk=cleaner_id, role='cleaner')
@@ -138,7 +138,7 @@ class AssignmentViewSet(viewsets.ReadOnlyModelViewSet):
         assignment = self.get_object()
         serializer = ReassignSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        new_cleaner_id = serializer.validated_data['newCleanerId']
+        new_cleaner_id = serializer.validated_data['new_cleaner_id']
 
         try:
             new_cleaner = User.objects.get(pk=new_cleaner_id, role='cleaner')
@@ -188,9 +188,9 @@ class TaskViewSet(viewsets.ModelViewSet):
         data = serializer.validated_data
 
         task = CleaningTask.objects.create(
-            room_id=data['roomId'],
-            cleaner_id=data['cleanerId'],
-            assignment_id=data['assignmentId'],
+            room_id=data['room_id'],
+            cleaner_id=data['cleaner_id'],
+            assignment_id=data['assignment_id'],
             status=TaskStatus.ASSIGNED,
         )
         return Response(
@@ -204,7 +204,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         serializer = StartTaskSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        qr_code = serializer.validated_data['qrCode']
+        qr_code = serializer.validated_data['qr_code']
         if task.room.qr_code != qr_code:
             return Response({'detail': 'Invalid QR code for this room'}, status=status.HTTP_400_BAD_REQUEST)
 

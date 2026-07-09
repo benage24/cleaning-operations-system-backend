@@ -52,7 +52,7 @@ class RoomAssignmentSerializer(serializers.ModelSerializer):
     cleanerId = serializers.IntegerField(source='cleaner_id')
     assignedBy = serializers.IntegerField(source='assigned_by_id', allow_null=True)
     assignedAt = serializers.DateTimeField(source='assigned_at', read_only=True)
-    isActive = serializers.BooleanField(source='is_active')
+    isActive = serializers.BooleanField(source='is_active', required=False)
 
     class Meta:
         model = RoomAssignment
@@ -60,54 +60,60 @@ class RoomAssignmentSerializer(serializers.ModelSerializer):
 
 
 class BulkAssignSerializer(serializers.Serializer):
-    roomIds = serializers.ListField(child=serializers.IntegerField(), min_length=1)
-    cleanerId = serializers.IntegerField()
+    room_ids = serializers.ListField(child=serializers.IntegerField(), min_length=1)
+    cleaner_id = serializers.IntegerField()
 
 
 class ReassignSerializer(serializers.Serializer):
-    newCleanerId = serializers.IntegerField()
+    new_cleaner_id = serializers.IntegerField()
 
 
 class CleaningTaskSerializer(serializers.ModelSerializer):
-    roomId = serializers.IntegerField(source='room_id')
-    cleanerId = serializers.IntegerField(source='cleaner_id')
-    assignmentId = serializers.IntegerField(source='assignment_id', allow_null=True)
-    startedAt = serializers.DateTimeField(source='started_at', read_only=True)
-    completedAt = serializers.DateTimeField(source='completed_at', read_only=True)
-    verifiedAt = serializers.DateTimeField(source='verified_at', read_only=True)
-    verifiedBy = serializers.PrimaryKeyRelatedField(source='verified_by', read_only=True)
-    beforePhotoUrl = serializers.SerializerMethodField()
-    afterPhotoUrl = serializers.SerializerMethodField()
-    rejectionReason = serializers.CharField(source='rejection_reason', read_only=True)
-    supervisorRating = serializers.IntegerField(source='supervisor_rating', read_only=True)
-    gpsStart = serializers.SerializerMethodField()
-    gpsComplete = serializers.SerializerMethodField()
-    qrVerified = serializers.BooleanField(source='qr_verified', read_only=True)
-    estimatedDurationMinutes = serializers.IntegerField(source='estimated_duration_minutes')
+    before_photo_url = serializers.SerializerMethodField()
+    after_photo_url = serializers.SerializerMethodField()
+    gps_start = serializers.SerializerMethodField()
+    gps_complete = serializers.SerializerMethodField()
 
     class Meta:
         model = CleaningTask
         fields = [
             'id',
-            'roomId',
-            'cleanerId',
-            'assignmentId',
+            'room_id',
+            'cleaner_id',
+            'assignment_id',
             'status',
-            'startedAt',
-            'completedAt',
-            'verifiedAt',
-            'verifiedBy',
-            'beforePhotoUrl',
-            'afterPhotoUrl',
-            'rejectionReason',
-            'supervisorRating',
-            'gpsStart',
-            'gpsComplete',
-            'qrVerified',
-            'estimatedDurationMinutes',
+            'started_at',
+            'completed_at',
+            'verified_at',
+            'verified_by',
+            'before_photo_url',
+            'after_photo_url',
+            'rejection_reason',
+            'supervisor_rating',
+            'gps_start',
+            'gps_complete',
+            'qr_verified',
+            'estimated_duration_minutes',
         ]
+        read_only_fields = [
+            'id',
+            'started_at',
+            'completed_at',
+            'verified_at',
+            'verified_by',
+            'before_photo_url',
+            'after_photo_url',
+            'rejection_reason',
+            'supervisor_rating',
+            'gps_start',
+            'gps_complete',
+            'qr_verified',
+        ]
+        extra_kwargs = {
+            'assignment_id': {'required': False, 'allow_null': True},
+        }
 
-    def get_beforePhotoUrl(self, obj):
+    def get_before_photo_url(self, obj):
         if obj.before_photo:
             request = self.context.get('request')
             if request:
@@ -115,7 +121,7 @@ class CleaningTaskSerializer(serializers.ModelSerializer):
             return obj.before_photo.url
         return None
 
-    def get_afterPhotoUrl(self, obj):
+    def get_after_photo_url(self, obj):
         if obj.after_photo:
             request = self.context.get('request')
             if request:
@@ -123,15 +129,15 @@ class CleaningTaskSerializer(serializers.ModelSerializer):
             return obj.after_photo.url
         return None
 
-    def get_gpsStart(self, obj):
+    def get_gps_start(self, obj):
         return build_gps(obj.gps_start_lat, obj.gps_start_lng, obj.gps_start_accuracy)
 
-    def get_gpsComplete(self, obj):
+    def get_gps_complete(self, obj):
         return build_gps(obj.gps_complete_lat, obj.gps_complete_lng, obj.gps_complete_accuracy)
 
 
 class StartTaskSerializer(serializers.Serializer):
-    qrCode = serializers.CharField()
+    qr_code = serializers.CharField()
     gps = serializers.DictField(required=False)
 
 
@@ -146,9 +152,9 @@ class VerifyTaskSerializer(serializers.Serializer):
 
 
 class CreateTaskFromAssignmentSerializer(serializers.Serializer):
-    assignmentId = serializers.IntegerField()
-    roomId = serializers.IntegerField()
-    cleanerId = serializers.IntegerField()
+    assignment_id = serializers.IntegerField()
+    room_id = serializers.IntegerField()
+    cleaner_id = serializers.IntegerField()
 
 
 class AttendanceRecordSerializer(serializers.ModelSerializer):
