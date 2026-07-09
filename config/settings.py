@@ -10,6 +10,10 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-dev-key-change-in-pro
 DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
 SERVE_MEDIA = config('SERVE_MEDIA', default=DEBUG, cast=bool)
+<<<<<<< HEAD
+=======
+SERVE_API_DOCS = config('SERVE_API_DOCS', default=DEBUG, cast=bool)
+>>>>>>> develop
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -20,7 +24,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
-    'corsheaders',
+    'drf_spectacular',
+     'corsheaders',
     'accounts',
     'operations',
 ]
@@ -63,7 +68,6 @@ DATABASES = {
         conn_health_checks=True,
     )
 }
-
 AUTH_USER_MODEL = 'accounts.User'
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -113,6 +117,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 50,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 SIMPLE_JWT = {
@@ -126,10 +131,45 @@ CORS_ALLOWED_ORIGINS = config(
     default='http://localhost:4200,http://127.0.0.1:4200',
     cast=Csv(),
 )
+<<<<<<< HEAD
 CORS_ALLOW_CREDENTIALS = False
 
+=======
+# JWT uses Authorization header, not cookies — credentials mode breaks CORS with allow-all.
+CORS_ALLOW_CREDENTIALS = False
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'CleanOps API',
+    'DESCRIPTION': 'Cleaning Operations System REST API',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SCHEMA_PATH_PREFIX': r'/api/',
+    'POSTPROCESSING_HOOKS': [
+        'drf_spectacular.hooks.postprocess_schema_enums',
+        'drf_spectacular.contrib.djangorestframework_camel_case.camelize_serializer_fields',
+    ],
+    'SECURITY': [{'BearerAuth': []}],
+    'APPEND_COMPONENTS': {
+        'securitySchemes': {
+            'BearerAuth': {
+                'type': 'http',
+                'scheme': 'bearer',
+                'bearerFormat': 'JWT',
+            }
+        }
+    },
+}
+
+>>>>>>> develop
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+<<<<<<< HEAD
+=======
+    SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=31536000, cast=int)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+>>>>>>> develop

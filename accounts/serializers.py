@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -37,19 +38,19 @@ class UserSerializer(serializers.ModelSerializer):
 
 class CleanerSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='user.id', read_only=True)
-    email = serializers.EmailField(source='user.email')
-    firstName = serializers.CharField(source='user.first_name')
-    lastName = serializers.CharField(source='user.last_name')
+    email = serializers.EmailField(source='user.email', required=True, allow_blank=False)
+    first_name = serializers.CharField(source='user.first_name')
+    last_name = serializers.CharField(source='user.last_name')
     role = serializers.CharField(source='user.role', read_only=True)
     phone = serializers.CharField(source='user.phone', required=False, allow_blank=True)
-    avatarUrl = serializers.SerializerMethodField()
-    isActive = serializers.BooleanField(source='user.is_active')
-    createdAt = serializers.DateTimeField(source='user.date_joined', read_only=True)
-    employeeId = serializers.CharField(source='employee_id')
-    employmentStatus = serializers.CharField(source='employment_status')
-    hireDate = serializers.DateField(source='hire_date')
-    performanceScore = serializers.IntegerField(source='performance_score', read_only=True)
-    supervisorId = serializers.PrimaryKeyRelatedField(
+    avatar_url = serializers.SerializerMethodField()
+    is_active = serializers.BooleanField(source='user.is_active', read_only=True)
+    created_at = serializers.DateTimeField(source='user.date_joined', read_only=True)
+    employee_id = serializers.CharField()
+    employment_status = serializers.CharField(read_only=True)
+    hire_date = serializers.DateField(required=False, default=timezone.localdate)
+    performance_score = serializers.IntegerField(read_only=True)
+    supervisor_id = serializers.PrimaryKeyRelatedField(
         source='supervisor',
         queryset=User.objects.filter(role='supervisor'),
         allow_null=True,
@@ -61,21 +62,21 @@ class CleanerSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'email',
-            'firstName',
-            'lastName',
+            'first_name',
+            'last_name',
             'role',
             'phone',
-            'avatarUrl',
-            'isActive',
-            'createdAt',
-            'employeeId',
-            'employmentStatus',
-            'hireDate',
-            'performanceScore',
-            'supervisorId',
+            'avatar_url',
+            'is_active',
+            'created_at',
+            'employee_id',
+            'employment_status',
+            'hire_date',
+            'performance_score',
+            'supervisor_id',
         ]
 
-    def get_avatarUrl(self, obj):
+    def get_avatar_url(self, obj):
         if obj.user.avatar:
             request = self.context.get('request')
             if request:
@@ -126,10 +127,14 @@ class LoginSerializer(serializers.Serializer):
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
+<<<<<<< HEAD
             try:
                 user = User.objects.get(email=username)
             except User.DoesNotExist:
                 raise serializers.ValidationError('Invalid username or password')
+=======
+            raise serializers.ValidationError('Invalid username or password')
+>>>>>>> develop
 
         if not user.check_password(password):
             raise serializers.ValidationError('Invalid username or password')
@@ -139,7 +144,6 @@ class LoginSerializer(serializers.Serializer):
 
         refresh = RefreshToken.for_user(user)
         user_serializer = UserSerializer(user, context=self.context)
-
         return {
             'refresh': str(refresh),
             'token': str(refresh.access_token),

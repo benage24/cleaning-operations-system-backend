@@ -1,10 +1,10 @@
 from django.db import transaction
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from accounts.models import CleanerProfile, EmploymentStatus, User
 from accounts.serializers import CleanerSerializer
@@ -26,6 +26,8 @@ from operations.serializers import (
     CompleteTaskSerializer,
     CreateTaskFromAssignmentSerializer,
     DashboardStatsSerializer,
+    ExportReportRequestSerializer,
+    ExportReportResponseSerializer,
     NotificationSerializer,
     PerformanceReportSerializer,
     ReassignSerializer,
@@ -33,6 +35,7 @@ from operations.serializers import (
     RoomSerializer,
     StartTaskSerializer,
     VerifyTaskSerializer,
+    WeeklyCompletionItemSerializer,
 )
 from operations.utils import (
     create_notification,
@@ -100,8 +103,8 @@ class AssignmentViewSet(viewsets.ReadOnlyModelViewSet):
     def bulk_assign(self, request):
         serializer = BulkAssignSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        room_ids = serializer.validated_data['roomIds']
-        cleaner_id = serializer.validated_data['cleanerId']
+        room_ids = serializer.validated_data['room_ids']
+        cleaner_id = serializer.validated_data['cleaner_id']
 
         try:
             cleaner = User.objects.get(pk=cleaner_id, role='cleaner')
@@ -135,7 +138,7 @@ class AssignmentViewSet(viewsets.ReadOnlyModelViewSet):
         assignment = self.get_object()
         serializer = ReassignSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        new_cleaner_id = serializer.validated_data['newCleanerId']
+        new_cleaner_id = serializer.validated_data['new_cleaner_id']
 
         try:
             new_cleaner = User.objects.get(pk=new_cleaner_id, role='cleaner')
@@ -185,9 +188,9 @@ class TaskViewSet(viewsets.ModelViewSet):
         data = serializer.validated_data
 
         task = CleaningTask.objects.create(
-            room_id=data['roomId'],
-            cleaner_id=data['cleanerId'],
-            assignment_id=data['assignmentId'],
+            room_id=data['room_id'],
+            cleaner_id=data['cleaner_id'],
+            assignment_id=data['assignment_id'],
             status=TaskStatus.ASSIGNED,
         )
         return Response(
@@ -201,7 +204,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         serializer = StartTaskSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        qr_code = serializer.validated_data['qrCode']
+        qr_code = serializer.validated_data['qr_code']
         if task.room.qr_code != qr_code:
             return Response({'detail': 'Invalid QR code for this room'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -400,8 +403,9 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(NotificationSerializer(notification).data)
 
 
-class DashboardStatsView(APIView):
+class DashboardStatsView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = DashboardStatsSerializer
 
     def get(self, request):
         today = timezone.localdate()
@@ -450,8 +454,10 @@ class DashboardStatsView(APIView):
         return Response(DashboardStatsSerializer(stats).data)
 
 
-class WeeklyCompletionView(APIView):
+@extend_schema(responses=WeeklyCompletionItemSerializer(many=True))
+class WeeklyCompletionView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = WeeklyCompletionItemSerializer
 
     def get(self, request):
         data = [
@@ -463,11 +469,13 @@ class WeeklyCompletionView(APIView):
             {'day': 'Sat', 'completed': 8, 'assigned': 10},
             {'day': 'Sun', 'completed': 6, 'assigned': 8},
         ]
-        return Response(data)
+        return Response(WeeklyCompletionItemSerializer(data, many=True).data)
 
 
-class PerformanceReportView(APIView):
+@extend_schema(responses=PerformanceReportSerializer(many=True))
+class PerformanceReportView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = PerformanceReportSerializer
 
     def get(self, request):
         reports = []
@@ -510,10 +518,15 @@ class PerformanceReportView(APIView):
         return Response(PerformanceReportSerializer(reports, many=True).data)
 
 
-class ExportReportView(APIView):
+@extend_schema(
+    request=ExportReportRequestSerializer,
+    responses=ExportReportResponseSerializer,
+)
+class ExportReportView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = ExportReportRequestSerializer
 
     def post(self, request):
         report_type = request.data.get('type', 'pdf')
         report_name = request.data.get('reportName', 'report')
-        return Response({'url': f'#export-{report_type}-{report_name}'})
+        return Response(ExportReportResponseSerializer({'url': f'#export-{report_type}-{report_name}'}).data)

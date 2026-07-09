@@ -9,7 +9,11 @@ services:
     name: cleanops-api
     runtime: python
     plan: free
+<<<<<<< HEAD
     buildCommand: bash build.sh
+=======
+    buildCommand: ./build.sh
+>>>>>>> develop
     startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
@@ -21,9 +25,19 @@ services:
       - key: ALLOWED_HOSTS
         value: .onrender.com
       - key: CORS_ALLOWED_ORIGINS
+<<<<<<< HEAD
         value: https://cleaning-operations-system.vercel.app,http://localhost:4200
       - key: SERVE_MEDIA
         value: "True"
+=======
+        sync: false
+      - key: SERVE_MEDIA
+        value: "True"
+      - key: SERVE_API_DOCS
+        value: "False"
+      - key: SECURE_SSL_REDIRECT
+        value: "True"
+>>>>>>> develop
       - key: DATABASE_URL
         fromDatabase:
           name: cleanops-db
