@@ -127,14 +127,7 @@ class LoginSerializer(serializers.Serializer):
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
-<<<<<<< HEAD
-            try:
-                user = User.objects.get(email=username)
-            except User.DoesNotExist:
-                raise serializers.ValidationError('Invalid username or password')
-=======
             raise serializers.ValidationError('Invalid username or password')
->>>>>>> develop
 
         if not user.check_password(password):
             raise serializers.ValidationError('Invalid username or password')
